@@ -1,0 +1,97 @@
+AppExceptions
+| where TimeGenerated between ( ago(365d) .. now() )
+| summarize EventCount = count() by calMonth=startofmonth(TimeGenerated) 
+| sort by calMonth asc
+| extend MonthNumber = datetime_part("month", calMonth)
+| extend YearNumber = datetime_part("year", calMonth)
+//|serialize or sort 
+| extend prvVal =  prev(MonthNumber)
+
+AppExceptions
+| where TimeGenerated between ( ago(365d) .. now() )
+| summarize EventCount = count() by calMonth=startofmonth(TimeGenerated) 
+| sort by calMonth asc
+| extend MonthNum = datetime_part("month", calMonth)
+| extend YearNum = datetime_part("year", calMonth)
+| extend PreviousMonthValue  =  prev(EventCount)
+| extend ValueGrowth  = EventCount- prev(EventCount)
+| project  YearNum, MonthNum, EventCount,PreviousMonthValue,  ValueGrowth
+
+
+AppExceptions
+| where TimeGenerated between ( ago(365d) .. now() )
+| summarize EventCount = count() by calMonth=startofmonth(TimeGenerated) 
+| sort by calMonth asc
+| extend MonthNum = datetime_part("month", calMonth)
+| extend YearNum = datetime_part("year", calMonth)
+| extend PreviousMonthValue  =  prev(EventCount)
+| extend ValueGrowth  = EventCount- iif (isnull( prev(EventCount)), 0, prev(EventCount))
+| project  YearNum, MonthNum, EventCount,PreviousMonthValue,  ValueGrowth
+
+
+Perf 
+| where TimeGenerated between (ago(30d) .. now())
+| where CounterName == "% Processor Time"
+| where ObjectName == "Processor"
+| where InstanceName == "_Total"
+| summarize PctCpuTime = avg(CounterValue) by bin(TimeGenerated, 1h)
+| sort by TimeGenerated asc //serialize is implied in any sort operation
+| extend movAvg= (PctCpuTime + prev(PctCpuTime, 1, 0) + prev(PctCpuTime, 2, 0))/3.0
+
+
+//row_cumsum
+Perf
+| where TimeGenerated >= ago(3h) 
+| where ObjectName == "Network Adapter"
+| where CounterName == "Bytes Received/sec" 
+| summarize BytesRecPerHour = sum(CounterValue) 
+         by Computer, bin(TimeGenerated, 1h)
+| sort by Computer asc, TimeGenerated asc
+
+
+Perf
+| where TimeGenerated >= ago(3h) 
+| where ObjectName == "Network Adapter"
+| where CounterName == "Bytes Received/sec" 
+| summarize BytesRecPerHour = sum(CounterValue) 
+         by Computer, bin(TimeGenerated, 1h)
+| sort by Computer asc, TimeGenerated asc
+| serialize BytesRecToCurrentHour = row_cumsum(BytesRecPerHour)
+
+
+Perf
+| where TimeGenerated >= ago(3h) 
+| where ObjectName == "Network Adapter"
+| where CounterName == "Bytes Received/sec" 
+| summarize BytesRecPerHour = sum(CounterValue) 
+         by Computer, bin(TimeGenerated, 1h)
+| sort by Computer asc, TimeGenerated asc
+| serialize BytesRecToCurrentHour = row_cumsum(BytesRecPerHour,Computer != prev(Computer))
+
+//row_number
+SecurityAlert
+| top 10 by TimeGenerated 
+| extend rownum=row_number()
+
+SecurityAlert
+| top 10 by TimeGenerated 
+| extend rownum=row_number(666)
+
+SecurityAlert
+| top 10 by TimeGenerated 
+| extend rownum=row_number(1, prev(DisplayName)!=DisplayName)
+
+
+//row_Rank
+datatable (Airport:string, Airline:string, Departures:long)
+[
+  "SEA", "LH", 3,
+  "SEA", "LY", 100,
+  "SEA", "UA", 3,
+  "SEA", "BA", 2,
+  "SEA", "EL", 3
+]
+| sort by Departures asc
+| extend Rank=row_rank(Departures)
+
+///

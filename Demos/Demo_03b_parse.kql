@@ -1,0 +1,178 @@
+Alert
+| take 10
+| project  Query;
+
+Alert
+| extend _Query =split (Query, " | ")
+| project _Table = _Query[0], 
+    _WhereClauses = _Query[1],
+    _WhereClauses2 = _Query[2],
+    _WhereClausesFinal = _Query[3]
+
+
+AppExceptions
+| project Assembly
+
+AppExceptions
+| parse Assembly with *  
+    "Version=" _version 
+    "Culture=" _myCulture
+    "PublicKeyToken" _myPKT
+| project Assembly, _version, _myCulture, _myPKT
+| top 10 by _version desc
+
+
+Perf
+| where ObjectName == "LogicalDisk"
+    and InstanceName matches regex "[A-Z]:"
+| project Computer 
+        , CounterName 
+        , extract("([A-Z]):", 0, InstanceName)
+
+
+
+SecurityAlert
+| where ProviderName =="MDATP"
+| extend ExtProps=todynamic(ExtendedProperties)
+| project ExtendedProperties, ExtProps
+
+
+
+
+
+// take a look into ExtendedProperties
+{ "Windows Defender ATP link": "{\"displayValue\":\"Investigate the alert in the Windows Defender ATP portal\",\"kind\":\"Link\",\"value\":\"https://securitycenter.windows.com/alert/da637539517325400548_1028460159\",\"alertBladeVisible\":true}", "File Name": "cryptdll.dll", "File Path": "C:\\Windows\\System32", "File Sha256": "8925892119315293c49d09a26191149660934bf1e5d3d023722e90339ada38aa", "Machine Name": "victim00", "Machine Domain": "na.contosohotels.com", "User Name": "SYSTEM", "User Domain": "NT AUTHORITY", "resourceType": "Virtual Machine", "ServiceId": "d1ec73b8-9ebd-4176-abcd-f5fe690bb748", "ReportingSystem": "Azure" }	
+
+
+
+
+
+SecurityAlert
+| where ProviderName =="MDATP"
+| extend ExtProps=todynamic(ExtendedProperties)
+| project ExtendedProperties ,AlertName, TimeGenerated
+        , ExtProps["Windows Defender ATP link"] 
+        , ExtProps["File Name"]
+        , ExtProps["File Path"]
+        , ExtProps["File Sha256"]
+        , ExtProps["Machine Name"]
+        , ExtProps["Machine Domain"]
+        , ExtProps["User Name"]
+        , ExtProps["User Domain"]
+        , ExtProps["resourceType"]
+        , ExtProps["ServiceId"]
+        , ExtProps["ReportingSystem"]
+
+
+// take a look into displayValue
+{"displayValue":"Investigate the alert in the Windows Defender ATP portal","kind":"Link","value":"https://securitycenter.windows.com/alert/da637535810234416118_1541414830","alertBladeVisible":true}	
+
+SecurityAlert
+| where ProviderName =="MDATP"
+| extend ExtProps=todynamic(ExtendedProperties)
+| extend ExtProps2=todynamic(ExtProps["Windows Defender ATP link"])
+| extend ExtProps22=replace(@'\"',@'"', tostring(ExtProps2))
+| extend ExtProps3=todynamic(ExtProps22)
+| project ExtendedProperties ,AlertName, TimeGenerated
+        , ExtProps["Windows Defender ATP link"] 
+        , ExtProps["File Name"]
+        , ExtProps["File Path"]
+        , ExtProps["File Sha256"]
+        , ExtProps["Machine Name"]
+        , ExtProps["Machine Domain"]
+        , ExtProps["User Name"]
+        , ExtProps["User Domain"]
+        , ExtProps["resourceType"]
+        , ExtProps["ServiceId"]
+        , ExtProps["ReportingSystem"]
+        , ExtProps3["displayValue"]
+        , ExtProps3["kind"]
+        , ExtProps3["value"]
+        , ExtProps3["alertBladeVisible"]
+        , ExtProps3
+
+
+
+
+
+{ "Windows Defender ATP link": "
+{\"displayValue\":\"Investigate the alert in the Windows Defender ATP portal\",\"kind\":\"Link\",
+\"value\":\"https://securitycenter.windows.com/alert/da637539517325400548_1028460159\",\"alertBladeVisible\":true}",
+ "File Name": "samlib.dll", 
+ "File Path": 
+ "C:\\Windows\\System32", 
+ "File Sha256": 
+ "fad279ce82d1616a533d6e5d3a20543b51fdbdde4c764e09f6a01c8b0e44218a", 
+ "Machine Name":  "victim00", 
+ "Machine Domain": "na.contosohotels.com", 
+ "User Name": 
+ "SYSTEM", 
+ "User Domain": "NT AUTHORITY", "resourceType": "Virtual Machine", "ServiceId": "d1ec73b8-9ebd-4176-abcd-f5fe690bb748", "ReportingSystem": "Azure" }	
+
+
+
+SecurityAlert
+| project AlertName, AlertSeverity, ProviderName, ExtendedProperties
+| order by ProviderName
+
+
+ SecurityAlert 
+| where ProviderName =="MSTIC"
+
+ SecurityAlert 
+| where ProviderName =="MDATP"
+
+
+
+
+{ "Windows Defender ATP link": "
+{\"displayValue\":\"Investigate the alert in the Windows Defender ATP portal\",\"kind\":\"Link\",
+\"value\":\"https://securitycenter.windows.com/alert/da637539517325400548_1028460159\",\"alertBladeVisible\":true}",
+ "File Name": "samlib.dll", 
+ "File Path": 
+ "C:\\Windows\\System32", 
+ "File Sha256": 
+ "fad279ce82d1616a533d6e5d3a20543b51fdbdde4c764e09f6a01c8b0e44218a", 
+ "Machine Name":  "victim00", 
+ "Machine Domain": "na.contosohotels.com", 
+ "User Name": 
+ "SYSTEM", 
+ "User Domain": "NT AUTHORITY", "resourceType": "Virtual Machine", "ServiceId": "d1ec73b8-9ebd-4176-abcd-f5fe690bb748", "ReportingSystem": "Azure" }	
+
+
+
+
+ SecurityAlert 
+| where ProviderName =="MDATP"
+| extend _MachineName=extract('"Machine Name": "(.*)"', 1, ExtendedProperties)
+| extend _WinDEf=extract('"Windows Defender ATP link": "(.*)"', 1, ExtendedProperties)
+| project ExtendedProperties, _WinDEf, _MachineName
+| order by  _MachineName asc
+
+
+///parse_csv
+AppExceptions 
+| distinct Assembly
+
+AppExceptions 
+| extend flds = parse_csv(Assembly)
+| project flds 
+
+AppExceptions 
+| extend flds = parse_csv(Assembly)
+| project   _assemblyName=flds[0],
+            _assemblyVersion=flds[1],
+            _assemblyCulture=flds[2],
+            _assemblyPKT=flds[3]
+
+
+
+AppExceptions 
+| extend flds = parse_csv(Assembly)
+| extend _assemblyVersion=split(flds[1], "=",1)
+| extend _assemblyCulture=split(flds[2], "=",1)
+| extend _assemblyPKT=split(flds[3], "=",1)
+| project   _assemblyName=flds[0],
+            _assemblyVersion,
+            _assemblyCulture,
+            _assemblyPKT

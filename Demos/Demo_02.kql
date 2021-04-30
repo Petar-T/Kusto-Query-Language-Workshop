@@ -1,0 +1,258 @@
+//Demo_01 : Table Queries
+
+
+AppExceptions //note : it might be slow 
+
+AppExceptions // list random 10 rows of data
+| take 10
+
+// to get pipe character use Ctrl+Enter shortcut
+
+AppExceptions //how many rows we have ? note the default time range (24h)
+| count
+
+AppExceptions //This will genereate error, tip : use intelissense
+| Take 10 
+
+
+AppExceptions
+| distinct SeverityLevel
+
+AppExceptions
+| distinct SeverityLevel , ClientType
+
+//so let's create few queries now , how many rows today ?
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| where  ClientType =="PC"
+| count
+
+
+//what are affected cities ??
+AppExceptions 
+| where  TimeGenerated >= ago(1d)
+| where  ClientType =="PC"
+| distinct ClientCity
+
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| where  ClientType =="PC"
+| where ClientCountryOrRegion  != "United States" 
+| project ClientBrowser, ClientCity, ClientCountryOrRegion , ClientModel, ClientOS
+
+
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| where  ClientType =="PC"
+| where ClientCountryOrRegion  != "United States" 
+| project City =ClientCity, Org= strcat(ClientCity , " - ", ClientCountryOrRegion)
+
+
+AppExceptions
+| where  TimeGenerated <= ago(1d)
+| where  ClientType =="PC"
+| sort by TimeGenerated desc 
+| take 10
+
+//same query , but using order by instead of sort, and limit instead of take
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| where  ClientType =="PC"
+|  top 10 by TimeGenerated desc 
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| count
+
+//let's find how many rows in stackable (multiple) where 
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where ClientCity =="New York"
+| where  AppRoleInstance == "RETAILVM01"
+| count ;
+
+//let's find how many rows in multiple where , but with and : make it readable to you!
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where ClientCity =="New York" and AppRoleInstance == "RETAILVM01"
+| count ;
+
+//let's find how many rows in multiple where , but with and : make it readable to you!
+//note use of "and" operator and "or" operator 
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where ClientCity =="New York" or AppRoleInstance == "RETAILVM01"
+| count ;
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+//| where ClientCity =="New York"
+| where OuterMessage contains "SQL"
+| count ;
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where OuterMessage  contains_cs "SQL"
+//| count ;
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where OuterMessage  startswith "input"
+//| count ;
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where OuterMessage  endswith_cs "Format"
+//| count ;
+
+
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where OuterMessage startswith ""
+//| count ;
+
+//search in any column
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| search "SQL"
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| search "Form"
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| search OperationName== "Form"
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| search OperationName: "Form"
+
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| search ProblemId: "System*"
+//| distinct  ProblemId
+
+AppExceptions
+| where  TimeGenerated >= ago(1d)
+| search ProblemId: "System*Action"
+| distinct ProblemId
+
+//also where supports regex
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| where ClientCity matches regex "tt"
+| distinct ClientCity
+
+
+
+// Regex 101:  taken from https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285
+//  ^The        matches any string that starts with The
+//  end$        matches a string that ends with end
+//  ^The end$   exact string match (starts and ends with The end)
+//  roar        matches any string that has the text roar in it
+
+//  abc*        matches a string that has ab followed by zero or more c 
+//  abc+        matches a string that has ab followed by one or more c
+//  abc?        matches a string that has ab followed by zero or one c
+//  abc{2}      matches a string that has ab followed by 2 c
+//  abc{2,}     matches a string that has ab followed by 2 or more c
+//  abc{2,5}    matches a string that has ab followed by 2 up to 5 c
+//  a(bc)*      matches a string that has a followed by zero or more copies of the sequence bc
+//  a(bc){2,5}  matches a string that has a followed by 2 up to 5 copies of the sequence bc
+
+//  a(b|c)     matches a string that has a followed by b or c (and captures b or c) 
+//  a[bc]      same as previous, but without capturing b or c
+
+
+//  \d         matches a single character that is a digit 
+//  \w         matches a word character (alphanumeric character plus underscore) -> Try it!
+//  \s         matches a whitespace character (includes tabs and line breaks)
+//  .          matches any character 
+
+//  [abc]            matches a string that has either an a or a b or a c -> is the same as a|b|c 
+//  [a-c]            same as previous
+//  [a-fA-F0-9]      a string that represents a single hexadecimal digit, case insensitively 
+//  [0-9]%           a string that has a character from 0 to 9 before a % sign
+//  [^a-zA-Z]        a string that has not a letter from a to z or from A to Z. In this case the ^ is used as negation of the expression 
+
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize count() by ClientCity
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize count() by ClientCity, SeverityLevel
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize countif(ClientType=="Browser") by ClientCity, SeverityLevel
+
+
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize TotalCount = count() by ClientCity, ClientBrowser
+
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize count() , avg(SeverityLevel) by ClientCity
+
+AppExceptions
+| where  TimeGenerated >= ago(10d)
+| summarize count()  by bin(TimeGenerated , 1d)
+
+
+
+AppExceptions
+| extend _Day=dayofmonth(TimeGenerated)  
+| extend _Month= monthofyear(TimeGenerated)  
+| extend _Year=getyear(TimeGenerated)  
+| where  TimeGenerated >= ago(10d)
+| take 10 
+
+
+AppExceptions
+| extend _Day=dayofmonth(TimeGenerated)  
+| extend _Month= monthofyear(TimeGenerated)  
+| extend _Year=getyear(TimeGenerated)  
+| where  TimeGenerated >= ago(10d)
+| summarize count()  by _Year, _Month, _Day
+
+
+//new 
+Event
+| where RenderedDescription startswith "Event code:" 
+| parse RenderedDescription with "Event code: " 
+                                 myEventCode " Event message: " 
+                                 myEventMessage " Event time: " 
+                                 myEventTime " Event time (UTC): " 
+                                 myEventTimeUTC " Event ID: " 
+                                 myEventID " Event sequence: " 
+                                 myEventSequence  " Event occurrence: "
+                                 *
+| project myEventCode 
+        , myEventMessage 
+        , myEventTime 
+        , myEventTimeUTC 
+        , myEventID 
+        , myEventSequence 
+
+
+        Perf
+| where ObjectName == "LogicalDisk"
+| where InstanceName matches regex "[A-Z]:"
+| project Computer 
+        , CounterName 
+        , extract("([A-Z]):", 0, InstanceName)

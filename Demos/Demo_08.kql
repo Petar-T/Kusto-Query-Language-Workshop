@@ -1,0 +1,57 @@
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate pivot(ProviderName)
+
+
+
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate pivot(AlertSeverity)
+
+
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate basket()
+
+
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate basket(0.16)
+
+
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate autocluster()
+
+SecurityAlert
+| project AlertSeverity, ProviderName
+| evaluate autocluster(0.1)
+
+Perf
+| where TimeGenerated >= ago(5d)
+| project  Computer, CounterName, InstanceName, CounterValue
+| evaluate diffpatterns(InstanceName, 'C:', 'D:')
+
+
+
+Perf
+| where TimeGenerated >= ago(5d)
+| where CounterName  == "% Free Space"
+| where InstanceName in ('C:', 'D:')
+| project Computer,  CounterName, InstanceName, CounterValue
+
+
+Perf
+| where TimeGenerated >= ago(5d)
+| where CounterName  == "% Free Space"
+| project Computer,  CounterName, InstanceName, CounterValue
+| evaluate diffpatterns(InstanceName, 'C:', 'D:')
+
+
+Perf
+| where TimeGenerated >= ago(12h)
+| project Computer 
+| reduce by Computer 
+
+
+

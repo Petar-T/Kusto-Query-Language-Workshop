@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="themes/prism.css" rel="stylesheet" />
+<link href="themes/collapsible.css" rel="stylesheet" />
+</head>
+<body>
+<script src="themes/prism.js"></script>
+<s1>By using <a href="https://aka.ms/LADemo" target="_blank">https://aka.ms/LADemo</a> try to execute following tasks</s1>
+
+
+
+
+
+
+
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+
+</body>
+</html>
